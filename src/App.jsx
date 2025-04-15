@@ -7,7 +7,6 @@ function App() {
   const [results, setResults] = useState([]);
   const [copied, setCopied] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
-  const [lastFetched, setLastFetched] = useState(null);
 
   useEffect(() => {
     const lastUsername = localStorage.getItem("lastUsername");
@@ -17,12 +16,8 @@ function App() {
       setDays(Number(lastDays));
       const cacheKey = `leetcode_${lastUsername}_${lastDays}`;
       const cachedResults = localStorage.getItem(cacheKey);
-      const cachedTimestamp = localStorage.getItem(`${cacheKey}_timestamp`);
       if (cachedResults) {
         setResults(JSON.parse(cachedResults));
-      }
-      if (cachedTimestamp) {
-        setLastFetched(new Date(Number(cachedTimestamp)));
       }
     }
   }, []);
@@ -33,12 +28,9 @@ function App() {
 
     const cacheKey = `leetcode_${username}_${days}`;
     const cachedResults = localStorage.getItem(cacheKey);
-    const currentTime = Date.now();
 
     if (cachedResults) {
       setResults(JSON.parse(cachedResults));
-      const cachedTimestamp = localStorage.getItem(`${cacheKey}_timestamp`);
-      setLastFetched(new Date(Number(cachedTimestamp)));
       setIsFetching(false);
       return;
     }
@@ -49,14 +41,11 @@ function App() {
       const finalResults = Array.isArray(filtered) ? filtered : [];
       setResults(finalResults);
       localStorage.setItem(cacheKey, JSON.stringify(finalResults));
-      localStorage.setItem(`${cacheKey}_timestamp`, String(currentTime));
       localStorage.setItem("lastUsername", username);
       localStorage.setItem("lastDays", String(days));
-      setLastFetched(new Date(currentTime));
     } catch (error) {
       console.error("Fetch error:", error);
       setResults([]);
-      setLastFetched(new Date(currentTime));
     } finally {
       setIsFetching(false);
     }
@@ -68,43 +57,35 @@ function App() {
         LeetCode Daily Progress Tracker
       </h1>
 
-      <div className="flex items-center space-x-2">
-        <input
-          type="text"
-          placeholder="Enter LeetCode username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="border p-2 w-64"
-        />
-        <select
-          value={days}
-          onChange={(e) => setDays(+e.target.value)}
-          className="border p-2 w-20"
-        >
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-        </select>
-        <button
-          onClick={handleFetch}
-          disabled={isFetching}
-          className={`bg-blue-500 text-white px-4 py-2 rounded
-                     hover:bg-blue-600 hover:scale-105
-                     active:bg-blue-700 active:scale-95
-                     transition-all duration-150 ease-in-out
-                     shadow-md hover:shadow-lg cursor-pointer
-                     ${isFetching ? "opacity-50 cursor-not-allowed" : ""}`}
-        >
-          {isFetching ? "Fetching..." : "Fetch"}
-        </button>
-      </div>
-
-      {lastFetched && (
-        <p className="text-sm text-gray-500 mt-2">
-          Last Fetched: {lastFetched.toLocaleString()}
-        </p>
-      )}
+      <input
+        type="text"
+        placeholder="Enter LeetCode username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        className="border p-2 mr-2 w-64"
+      />
+      <select
+        value={days}
+        onChange={(e) => setDays(+e.target.value)}
+        className="border p-2 w-20 mr-2"
+      >
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+      </select>
+      <button
+        onClick={handleFetch}
+        disabled={isFetching}
+        className={`bg-blue-500 text-white px-4 py-2 rounded
+                   hover:bg-blue-600 hover:scale-105
+                   active:bg-blue-700 active:scale-95
+                   transition-all duration-150 ease-in-out
+                   shadow-md hover:shadow-lg cursor-pointer
+                   ${isFetching ? "opacity-50 cursor-not-allowed" : ""}`}
+      >
+        {isFetching ? "Fetching..." : "Fetch"}
+      </button>
 
       {results.length > 0 && (
         <div className="mt-6">
