@@ -4,7 +4,7 @@ import { fetchRecentSubmissions, filterByDays } from "./utils/fetchData";
 function App() {
   const [username, setUsername] = useState("");
   const [days, setDays] = useState(1);
-  const [results, setResults] = useState();
+  const [results, setResults] = useState([]);
   const [copied, setCopied] = useState(false);
 
   const handleFetch = async () => {
