@@ -1,21 +1,54 @@
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Added useEffect for initial load
 import { fetchRecentSubmissions, filterByDays } from "./utils/fetchData";
 
 function App() {
   const [username, setUsername] = useState("");
   const [days, setDays] = useState(1);
-  const [results, setResults] = useState();
+  const [results, setResults] = useState([]);
   const [copied, setCopied] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
+
+  useEffect(() => {
+    const lastUsername = localStorage.getItem("lastUsername");
+    const lastDays = localStorage.getItem("lastDays");
+    if (lastUsername && lastDays) {
+      setUsername(lastUsername);
+      setDays(Number(lastDays));
+      const cacheKey = `leetcode_${lastUsername}_${lastDays}`;
+      const cachedResults = localStorage.getItem(cacheKey);
+      if (cachedResults) {
+        setResults(JSON.parse(cachedResults));
+      }
+    }
+  }, []);
 
   const handleFetch = async () => {
+    if (isFetching) return;
+    setIsFetching(true);
+
+    const cacheKey = `leetcode_${username}_${days}`;
+    const cachedResults = localStorage.getItem(cacheKey);
+
+    if (cachedResults) {
+      setResults(JSON.parse(cachedResults));
+      setIsFetching(false);
+      return;
+    }
+
     try {
-        const raw = await fetchRecentSubmissions(username);
-        const filtered = filterByDays(raw || [], days);
-        setResults(Array.isArray(filtered) ? filtered : []);
-      } catch (error) {
-        console.error("Fetch error:", error);
-        setResults([]);
-      }
+      const raw = await fetchRecentSubmissions(username);
+      const filtered = filterByDays(raw || [], days);
+      const finalResults = Array.isArray(filtered) ? filtered : [];
+      setResults(finalResults);
+      localStorage.setItem(cacheKey, JSON.stringify(finalResults));
+      localStorage.setItem("lastUsername", username);
+      localStorage.setItem("lastDays", String(days));
+    } catch (error) {
+      console.error("Fetch error:", error);
+      setResults([]);
+    } finally {
+      setIsFetching(false);
+    }
   };
 
   return (
@@ -37,19 +70,21 @@ function App() {
         className="border p-2 w-20 mr-2"
       >
         <option value="1">1</option>
-        <option value="3">2</option>
-        <option value="5">3</option>
-        <option value="7">4</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
       </select>
       <button
         onClick={handleFetch}
-        className="bg-blue-500 text-white px-4 py-2 rounded
+        disabled={isFetching}
+        className={`bg-blue-500 text-white px-4 py-2 rounded
                    hover:bg-blue-600 hover:scale-105
                    active:bg-blue-700 active:scale-95
                    transition-all duration-150 ease-in-out
-                   shadow-md hover:shadow-lg cursor-pointer"
+                   shadow-md hover:shadow-lg cursor-pointer
+                   ${isFetching ? "opacity-50 cursor-not-allowed" : ""}`}
       >
-        Fetch
+        {isFetching ? "Fetching..." : "Fetch"}
       </button>
 
       {results.length > 0 && (
@@ -59,8 +94,8 @@ function App() {
             <button
               onClick={() => {
                 const text = results
-                  .map((item, i) => "```\n" + `${i + 1}. ${item.title}` + "```")
-                  .join("");
+                  .map((item, i) => `${i + 1}. ${item.title}`)
+                  .join("\n");
                 navigator.clipboard.writeText(text);
                 setCopied(true);
                 setTimeout(() => setCopied(false), 2000);
