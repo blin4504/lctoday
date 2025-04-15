@@ -4,13 +4,37 @@ import { fetchRecentSubmissions, filterByDays } from "./utils/fetchData";
 function App() {
   const [username, setUsername] = useState("");
   const [days, setDays] = useState(1);
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState([
+    {
+      id: "1",
+      title: "Two Sum",
+      titleSlug: "two-sum",
+      timestamp: 1713120000,
+    },
+    {
+      id: "2",
+      title: "Add Two Numbers",
+      titleSlug: "add-two-numbers",
+      timestamp: 1713206400,
+    },
+    {
+      id: "3",
+      title: "Longest Substring Without Repeating Characters",
+      titleSlug: "longest-substring-without-repeating-characters",
+      timestamp: 1713292800,
+    },
+  ]);
   const [copied, setCopied] = useState(false);
 
   const handleFetch = async () => {
-    const raw = await fetchRecentSubmissions(username);
-    const filtered = filterByDays(raw, days);
-    setResults(filtered);
+    try {
+        const raw = await fetchRecentSubmissions(username);
+        const filtered = filterByDays(raw || [], days);
+        setResults(Array.isArray(filtered) ? filtered : []);
+      } catch (error) {
+        console.error("Fetch error:", error);
+        setResults([]);
+      }
   };
 
   return (
