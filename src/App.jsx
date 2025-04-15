@@ -3,18 +3,15 @@ import { fetchRecentSubmissions, filterByDays } from "./utils/fetchData";
 
 function App() {
   const [username, setUsername] = useState("");
-  const [days, setDays] = useState(1);
   const [results, setResults] = useState([]);
   const [copied, setCopied] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
 
   useEffect(() => {
     const lastUsername = localStorage.getItem("lastUsername");
-    const lastDays = localStorage.getItem("lastDays");
-    if (lastUsername && lastDays) {
+    if (lastUsername) {
       setUsername(lastUsername);
-      setDays(Number(lastDays));
-      const cacheKey = `leetcode_${lastUsername}_${lastDays}`;
+      const cacheKey = `leetcode_${lastUsername}`;
       const cachedResults = localStorage.getItem(cacheKey);
       if (cachedResults) {
         setResults(JSON.parse(cachedResults));
@@ -26,7 +23,7 @@ function App() {
     if (isFetching) return;
     setIsFetching(true);
 
-    const cacheKey = `leetcode_${username}_${days}`;
+    const cacheKey = `leetcode_${username}`;
     const cachedResults = localStorage.getItem(cacheKey);
 
     if (cachedResults) {
@@ -37,12 +34,12 @@ function App() {
 
     try {
       const raw = await fetchRecentSubmissions(username);
-      const filtered = filterByDays(raw || [], days);
+      // Filter for submissions from today (current day)
+      const filtered = filterByDays(raw || [], 1); // Hardcode to 1 day (today)
       const finalResults = Array.isArray(filtered) ? filtered : [];
       setResults(finalResults);
       localStorage.setItem(cacheKey, JSON.stringify(finalResults));
       localStorage.setItem("lastUsername", username);
-      localStorage.setItem("lastDays", String(days));
     } catch (error) {
       console.error("Fetch error:", error);
       setResults([]);
@@ -57,35 +54,27 @@ function App() {
         LeetCode Daily Progress Tracker
       </h1>
 
-      <input
-        type="text"
-        placeholder="Enter LeetCode username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        className="border p-2 mr-2 w-64"
-      />
-      <select
-        value={days}
-        onChange={(e) => setDays(+e.target.value)}
-        className="border p-2 w-20 mr-2"
-      >
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-      </select>
-      <button
-        onClick={handleFetch}
-        disabled={isFetching}
-        className={`bg-blue-500 text-white px-4 py-2 rounded
-                   hover:bg-blue-600 hover:scale-105
-                   active:bg-blue-700 active:scale-95
-                   transition-all duration-150 ease-in-out
-                   shadow-md hover:shadow-lg cursor-pointer
-                   ${isFetching ? "opacity-50 cursor-not-allowed" : ""}`}
-      >
-        {isFetching ? "Fetching..." : "Fetch"}
-      </button>
+      <div className="flex items-center space-x-2">
+        <input
+          type="text"
+          placeholder="Enter LeetCode username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className="border p-2 w-64"
+        />
+        <button
+          onClick={handleFetch}
+          disabled={isFetching}
+          className={`bg-blue-500 text-white px-4 py-2 rounded
+                     hover:bg-blue-600 hover:scale-105
+                     active:bg-blue-700 active:scale-95
+                     transition-all duration-150 ease-in-out
+                     shadow-md hover:shadow-lg cursor-pointer
+                     ${isFetching ? "opacity-50 cursor-not-allowed" : ""}`}
+        >
+          {isFetching ? "Fetching..." : "Fetch"}
+        </button>
+      </div>
 
       {results.length > 0 && (
         <div className="mt-6">
@@ -112,9 +101,7 @@ function App() {
 
           <textarea
             readOnly
-            value={results
-              .map((item) => `${item.title}`)
-              .join("\n")}
+            value={results.map((item) => `${item.title}`).join("\n")}
             rows={Math.max(5, results.length)}
             className="w-full p-3 rounded border font-mono bg-gray-600"
           />
