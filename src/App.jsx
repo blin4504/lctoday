@@ -24,9 +24,16 @@ function App() {
     setIsFetching(true);
 
     const cacheKey = `leetcode_${username}`;
+    const cacheTimestampKey = `leetcode_${username}_timestamp`;
     const cachedResults = localStorage.getItem(cacheKey);
+    const cachedTimestamp = localStorage.getItem(cacheTimestampKey);
 
-    if (cachedResults) {
+    const isCacheValid =
+      cachedResults &&
+      cachedTimestamp &&
+      Date.now() - parseInt(cachedTimestamp) < 12 * 60 * 60 * 1000;
+
+    if (isCacheValid) {
       setResults(JSON.parse(cachedResults));
       setIsFetching(false);
       return;
@@ -40,6 +47,7 @@ function App() {
       setResults(finalResults);
       localStorage.setItem(cacheKey, JSON.stringify(finalResults));
       localStorage.setItem("lastUsername", username);
+      localStorage.setItem(cacheTimestampKey, Date.now().toString()); // Store current timestamp
     } catch (error) {
       console.error("Fetch error:", error);
       setResults([]);
