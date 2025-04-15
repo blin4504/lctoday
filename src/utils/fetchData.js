@@ -6,9 +6,7 @@ async function fetchRecentSubmissions(username) {
         query: `
           query userProfileRecentAcSubmissions($username: String!) {
             recentAcSubmissionList(username: $username) {
-              id
               title
-              titleSlug
               timestamp
             }
           }
