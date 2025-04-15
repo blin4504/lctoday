@@ -17,6 +17,7 @@ export default async function handler(req, res) {
       });
   
       const data = await leetcodeRes.json();
+      console.log(data)
       res.status(200).json(data);
     } catch (err) {
       console.error('Error fetching from LeetCode:', err);
