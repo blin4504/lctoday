@@ -94,7 +94,7 @@ function App() {
             <button
               onClick={() => {
                 const text = results
-                  .map((item, i) => `${i + 1}. ${item.title}`)
+                  .map((item) => `${item.title}`)
                   .join("\n");
                 navigator.clipboard.writeText(text);
                 setCopied(true);
@@ -113,7 +113,7 @@ function App() {
           <textarea
             readOnly
             value={results
-              .map((item, i) => `${i + 1}. ${item.title}`)
+              .map((item) => `${item.title}`)
               .join("\n")}
             rows={Math.max(5, results.length)}
             className="w-full p-3 rounded border font-mono bg-gray-600"
